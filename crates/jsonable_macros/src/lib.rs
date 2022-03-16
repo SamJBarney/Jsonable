@@ -1,6 +1,4 @@
-use proc_macro2::{self, TokenStream};
-use quote::quote;
-use syn::{parse_macro_input, DeriveInput, FieldsNamed, FieldsUnnamed, Data, DataStruct, Fields};
+use syn::{parse_macro_input, DeriveInput, Data, DataStruct, Fields};
 
 mod structs;
 

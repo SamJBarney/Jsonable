@@ -5,7 +5,7 @@ use syn::{FieldsNamed, Type};
 pub fn implement_named(identifier: &Ident, input: FieldsNamed) -> Result<TokenStream, String> {
     let mut from_json_unchecked: Vec<TokenStream> = Vec::new();
     let mut to_json: Vec<TokenStream> = Vec::new();
-    let mut verify_json: Vec<TokenStream> = Vec::new();
+    let mut validate_json: Vec<TokenStream> = Vec::new();
 
     for field in input.named.into_iter() {
         let ident = field.ident.unwrap();
@@ -25,8 +25,8 @@ pub fn implement_named(identifier: &Ident, input: FieldsNamed) -> Result<TokenSt
                         #ident: <#ty as jsonable::Jsonable>::from_json_unchecked(inner_json.remove(#ident_str).unwrap_or(serde_json::Value::Null)),
                     });
 
-                    verify_json.push(quote!{
-                        match <#ty as jsonable::Jsonable>::verify_json(map.get(#ident_str).unwrap_or(&serde_json::Value::Null)) {
+                    validate_json.push(quote!{
+                        match <#ty as jsonable::Jsonable>::validate_json(map.get(#ident_str).unwrap_or(&serde_json::Value::Null)) {
                             Ok(()) => (),
                             Err(err) => return Err(jsonable::JsonableError::InnerErrorForType { ty: std::any::type_name::<#ty>(), error: Box::from(err)})
                         }
@@ -39,8 +39,8 @@ pub fn implement_named(identifier: &Ident, input: FieldsNamed) -> Result<TokenSt
                         #ident: #ty::from_json_unchecked(inner_json.remove(#ident_str).unwrap_or(serde_json::Value::Null)),
                     });
 
-                    verify_json.push(quote!{
-                        match #ty::verify_json(map.get(#ident_str).unwrap_or(&serde_json::Value::Null)) {
+                    validate_json.push(quote!{
+                        match #ty::validate_json(map.get(#ident_str).unwrap_or(&serde_json::Value::Null)) {
                             Ok(()) => (),
                             Err(err) => return Err(jsonable::JsonableError::InnerErrorForType { ty: std::any::type_name::<#ty>(), error: Box::from(err)})
                         }
@@ -56,8 +56,8 @@ pub fn implement_named(identifier: &Ident, input: FieldsNamed) -> Result<TokenSt
                     #ident: <#ty as jsonable::Jsonable>::from_json_unchecked(inner_json.remove(#ident_str).unwrap_or(serde_json::Value::Null)),
                 });
 
-                verify_json.push(quote!{
-                    match <#ty as jsonable::Jsonable>::verify_json(map.get(#ident_str).unwrap_or(&serde_json::Value::Null)) {
+                validate_json.push(quote!{
+                    match <#ty as jsonable::Jsonable>::validate_json(map.get(#ident_str).unwrap_or(&serde_json::Value::Null)) {
                         Ok(()) => (),
                         Err(err) => return Err(jsonable::JsonableError::InnerErrorForType { ty: std::any::type_name::<#ty>(), error: Box::from(err)})
                     }
@@ -87,10 +87,10 @@ pub fn implement_named(identifier: &Ident, input: FieldsNamed) -> Result<TokenSt
                 serde_json::Value::Object(map)
             }
 
-            fn verify_json(json: &serde_json::Value) -> jsonable::JsonResult<()> {
+            fn validate_json(json: &serde_json::Value) -> jsonable::Result<()> {
                 match json {
                     serde_json::Value::Object(map) => {
-                        #(#verify_json)*
+                        #(#validate_json)*
 
                         Ok(())
                     }

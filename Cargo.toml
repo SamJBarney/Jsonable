@@ -10,5 +10,10 @@ serde_json = "1.0.79"
 jsonable_macros = { path = "crates/jsonable_macros" }
 jsonable_types = { path = "crates/jsonable_types" }
 
+
+[dev-dependencies]
+json-patch = "0.2.6"
+trybuild = "1.0"
+
 [workspace]
 members = ["crates/*"]

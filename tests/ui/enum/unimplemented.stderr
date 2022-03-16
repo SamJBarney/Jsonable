@@ -1,0 +1,7 @@
+error: proc-macro derive panicked
+ --> tests/ui/enum/unimplemented.rs:3:10
+  |
+3 | #[derive(Jsonable)]
+  |          ^^^^^^^^
+  |
+  = help: message: this derive macro only works on structs with named fields

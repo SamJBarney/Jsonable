@@ -3,42 +3,42 @@
 //! converting to your type.
 //! 
 //! # Example
-//! ```ignore
-//! #[macro_use]
-//! extern crate serde_json;
-//! extern crate json_patch;
-//! extern crate jsonable;
-//! 
+//! ```
 //! use json_patch::patch;
-//! use serde_json::from_str;
-//! use jsonable::Jsonable;
+//! use serde_json::*;
+//! use jsonable::*;
 //! 
+//! #[derive(Debug,Jsonable)]
 //! struct Person {
-//!     pub first_name: String
+//!     pub first_name: String,
 //!     pub last_name: Option<String>
 //! }
 //! 
 //! let mut doc = json!({ "first_name": "Andrew" });
 //! 
 //! let p = from_str(r#"[
-//!   { "op": "test", "path": "/0/name", "value": "Andrew" },
-//!   { "op": "add", "path": "/0/last_name", "value": "Marx" }
-//! ]"#).unwrap();
+//!         { "op": "test", "path": "/first_name", "value": "Andrew" },
+//!         { "op": "add", "path": "/last_name", "value": "Marx" }
+//!     ]"#).unwrap();
 //! 
 //! patch(&mut doc, &p).unwrap();
 //! 
-//! let person: Person = Person::from_json(doc);
+//! let person = Person::from_json(doc).unwrap();
+//! 
 //! assert_eq!(person.last_name, Some("Marx".into()))
 //! ```
-//! 
+//!
 pub use jsonable_macros::*;
 
 pub use jsonable_types::*;
 
-use crate as jsonable;
 
-#[derive(Jsonable)]
-pub struct Test {
-    pub value: u8,
-    pub complex: Vec<u8>
+#[cfg(test)]
+#[test]
+fn ui() {
+    let t = trybuild::TestCases::new();
+    t.pass("tests/ui/named_structs/happy_path.rs");
+    t.compile_fail("tests/ui/enum/unimplemented.rs");
+    t.compile_fail("tests/ui/tuple_structs/unimplemented.rs");
 }
+
