@@ -28,6 +28,11 @@
 //! assert_eq!(person.last_name, Some("Marx".into()))
 //! ```
 //!
+//! # Roadmap
+//! - [X] Implement derive for Named Structs
+//! - [ ] Implement derive for Tuple Structs
+//! - [ ] Implement derive for Enums
+//! - [ ] Add helper attributes to allow mapping json keys to fields/values
 pub use jsonable_macros::*;
 
 pub use jsonable_types::*;
