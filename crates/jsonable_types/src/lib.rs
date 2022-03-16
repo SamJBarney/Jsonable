@@ -255,7 +255,6 @@ impl Jsonable for String {
     fn from_json_unchecked(json: Value) -> Self {
         json.as_str()
             .unwrap_or_else(|| panic!("Tried converting non-string json into string"))
-            .trim_matches('"')
             .into()
     }
 
