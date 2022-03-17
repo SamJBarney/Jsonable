@@ -2,6 +2,8 @@
 name = "jsonable_types"
 version = "1.0.0"
 edition = "2021"
+repository = "https://github.com/SamJBarney/jsonable"
+keywords = ["json", "patch", "serde"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

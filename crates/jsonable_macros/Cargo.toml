@@ -2,6 +2,8 @@
 name = "jsonable_macros"
 version = "1.0.0"
 edition = "2021"
+repository = "https://github.com/SamJBarney/jsonable"
+keywords = ["json", "patch", "serde"]
 
 [lib]
 proc-macro = true
