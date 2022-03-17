@@ -14,7 +14,4 @@ struct Complex {
     pub map: HashMap<String, Vec<String>>
 }
 
-fn main() {
-    let _subject = Simple { something: 8, value: "string".into() };
-    let _complex = Complex { vec: Vec::new(), map: HashMap::new() };
-}
+fn main() {}

@@ -1,4 +1,3 @@
-#[allow(unused_macros)]
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 
@@ -355,6 +354,7 @@ pub mod tests {
     pub use serde_json::*;
 
     // Enabled test module
+    #[allow(unused_macros)]
     macro_rules! test_mod {
         ($name:ident { $( $rest:tt )* }) => {
             mod $name {
@@ -365,6 +365,7 @@ pub mod tests {
     }
 
     // Disabled test module
+    #[allow(unused_macros)]
     macro_rules! xtest_mod {
         ($name:ident { $( $rest:tt )* }) => {
             

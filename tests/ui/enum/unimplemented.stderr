@@ -4,4 +4,4 @@ error: proc-macro derive panicked
 3 | #[derive(Jsonable)]
   |          ^^^^^^^^
   |
-  = help: message: this derive macro only works on structs with named fields
+  = help: message: Unimplemented
