@@ -30,7 +30,8 @@
 //!
 //! # Roadmap
 //! - [X] Implement derive for Named Structs
-//! - [ ] Implement derive for Tuple Structs
+//! - [X] Implement derive for Tuple Structs
+//! - [X] Implement derive for Unit Structs
 //! - [ ] Implement derive for Enums
 //! - [ ] Add helper attributes to allow mapping json keys to fields/values
 pub use jsonable_macros::*;
