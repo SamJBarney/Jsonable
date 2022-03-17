@@ -1,6 +1,6 @@
-use proc_macro2::{TokenStream, Ident};
+use proc_macro2::{Ident, TokenStream};
 use quote::quote;
-use syn::{FieldsNamed, Type, FieldsUnnamed};
+use syn::{FieldsNamed, FieldsUnnamed, Type};
 
 pub fn implement_named(identifier: &Ident, input: FieldsNamed) -> Result<TokenStream, String> {
     let mut from_json_unchecked: Vec<TokenStream> = Vec::new();
@@ -14,12 +14,14 @@ pub fn implement_named(identifier: &Ident, input: FieldsNamed) -> Result<TokenSt
 
         match ty.clone() {
             Type::Path(path) => {
-                let complex = path.path.segments.into_iter().find(|segment| {
-                    match segment.arguments {
-                        syn::PathArguments::None => false,
-                        _ => true
-                    }
-                });
+                let complex =
+                    path.path
+                        .segments
+                        .into_iter()
+                        .find(|segment| match segment.arguments {
+                            syn::PathArguments::None => false,
+                            _ => true,
+                        });
                 if let Some(_) = complex {
                     from_json_unchecked.push(quote! {
                         #ident: <#ty as jsonable::Jsonable>::from_json_unchecked(inner_json.remove(#ident_str).unwrap_or(serde_json::Value::Null)),
@@ -46,8 +48,7 @@ pub fn implement_named(identifier: &Ident, input: FieldsNamed) -> Result<TokenSt
                         }
                     });
                 }
-
-            },
+            }
             _ => {
                 if ident_str == "complex" {
                     panic!("Complex");
@@ -114,7 +115,6 @@ pub fn implement_unnamed(identifier: &Ident, input: FieldsUnnamed) -> Result<Tok
     let mut to_json: Vec<TokenStream> = Vec::new();
     let mut validate_json: Vec<TokenStream> = Vec::new();
 
-
     for (idx, field) in input.unnamed.into_iter().enumerate() {
         let ident_str = idx.to_string();
         let ty = field.ty;
@@ -123,12 +123,14 @@ pub fn implement_unnamed(identifier: &Ident, input: FieldsUnnamed) -> Result<Tok
 
         match ty.clone() {
             Type::Path(path) => {
-                let complex = path.path.segments.into_iter().find(|segment| {
-                    match segment.arguments {
-                        syn::PathArguments::None => false,
-                        _ => true
-                    }
-                });
+                let complex =
+                    path.path
+                        .segments
+                        .into_iter()
+                        .find(|segment| match segment.arguments {
+                            syn::PathArguments::None => false,
+                            _ => true,
+                        });
                 if let Some(_) = complex {
                     from_json_unchecked.push(quote! {
                         #index: <#ty as jsonable::Jsonable>::from_json_unchecked(inner_json.remove(#ident_str).unwrap_or(serde_json::Value::Null)),
@@ -152,8 +154,7 @@ pub fn implement_unnamed(identifier: &Ident, input: FieldsUnnamed) -> Result<Tok
                         }
                     });
                 }
-
-            },
+            }
             _ => {
                 from_json_unchecked.push(quote! {
                     #index: <#ty as jsonable::Jsonable>::from_json_unchecked(inner_json.remove(#ident_str).unwrap_or(serde_json::Value::Null)),
@@ -174,7 +175,7 @@ pub fn implement_unnamed(identifier: &Ident, input: FieldsUnnamed) -> Result<Tok
     }
 
     let ident_str = identifier.to_string();
-    
+
     Ok(quote! {
         impl jsonable::Jsonable for #identifier {
             fn from_json_unchecked(mut json: serde_json::Value) -> Self {
