@@ -1,8 +1,7 @@
 # jsonable
 
-Jsonable provides a easy way to convert from and to [serde_json::Value](https://docs.serde.rs/serde_json/value/enum.Value.html)
-for your types while in memory, allowing you to modify the json before
-converting to your type.
+Jsonable provides a easy way to convert to and from [serde_json::Value](https://docs.serde.rs/serde_json/value/enum.Value.html)
+for your types while in memory, allowing you to modify the json before converting to your type.
 
 ## Example
 ```rust
