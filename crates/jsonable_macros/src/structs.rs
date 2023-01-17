@@ -34,9 +34,6 @@ pub fn implement_named(identifier: &Ident, input: FieldsNamed) -> Result<TokenSt
                         }
                     });
                 } else {
-                    if ident_str == "complex" {
-                        panic!("Simple");
-                    }
                     from_json_unchecked.push(quote! {
                         #ident: #ty::from_json_unchecked(inner_json.remove(#ident_str).unwrap_or(serde_json::Value::Null)),
                     });
@@ -50,9 +47,6 @@ pub fn implement_named(identifier: &Ident, input: FieldsNamed) -> Result<TokenSt
                 }
             }
             _ => {
-                if ident_str == "complex" {
-                    panic!("Complex");
-                }
                 from_json_unchecked.push(quote! {
                     #ident: <#ty as jsonable::Jsonable>::from_json_unchecked(inner_json.remove(#ident_str).unwrap_or(serde_json::Value::Null)),
                 });

@@ -87,6 +87,10 @@ pub enum JsonableError {
         ty: &'static str,
         error: Box<JsonableError>,
     },
+    InnerErrorsForType {
+        ty: &'static str,
+        errors: Vec<JsonableError>,
+    },
     InvalidArrayLength {
         got: usize,
         expected: usize,
@@ -95,6 +99,19 @@ pub enum JsonableError {
         enum_type: &'static str,
         got: String,
         expected: Vec<&'static str>
+    },
+    IncorrectObjectKeyCountForEnum {
+        ty: &'static str,
+        count: usize
+    },
+    IncorrectFieldCountForEnum {
+        enum_type: &'static str,
+        variant: &'static str,
+        count: usize
+    },
+    IncorrectKeyForEnum {
+        ty: &'static str,
+        key: String
     }
 }
 

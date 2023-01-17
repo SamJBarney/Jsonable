@@ -3,7 +3,7 @@
 //!
 //! # Example
 //! ```
-//! use json_patch::patch;
+//! use json_patch::{patch,PatchOperation};
 //! use serde_json::*;
 //! use jsonable::*;
 //!
@@ -15,7 +15,7 @@
 //!
 //! let mut doc = json!({ "first_name": "Andrew" });
 //!
-//! let p = from_str(r#"[
+//! let p: Vec<PatchOperation> = from_str(r#"[
 //!         { "op": "test", "path": "/first_name", "value": "Andrew" },
 //!         { "op": "add", "path": "/last_name", "value": "Marx" }
 //!     ]"#).unwrap();
