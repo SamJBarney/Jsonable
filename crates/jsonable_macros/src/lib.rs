@@ -1,5 +1,6 @@
-use syn::{parse_macro_input, Data, DataStruct, DeriveInput, Fields};
+use syn::{parse_macro_input, Data, DataStruct, DeriveInput, Fields, DataEnum};
 
+mod enums;
 mod structs;
 
 #[proc_macro_derive(Jsonable)]
@@ -24,7 +25,13 @@ pub fn derive_jsonable(input: proc_macro::TokenStream) -> proc_macro::TokenStrea
             Ok(output) => output,
             Err(err) => panic!("{}", err),
         },
-        Data::Enum(_) => panic!("Unimplemented"),
+        Data::Enum(DataEnum {
+            variants,
+            ..
+        }) => match enums::implement(&input.ident, variants) {
+            Ok(output) => output,
+            Err(err) => panic!("{}", err),
+        },
         Data::Union(_) => panic!("Jsonable does not support unions"),
     }
     .into()

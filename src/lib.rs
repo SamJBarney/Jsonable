@@ -41,7 +41,7 @@ pub use jsonable_types::*;
 #[test]
 fn ui() {
     let t = trybuild::TestCases::new();
-    t.compile_fail("tests/ui/enum/unimplemented.rs");
+    t.pass("tests/ui/enum/happy_path.rs");
     t.pass("tests/ui/named_structs/happy_path.rs");
     t.pass("tests/ui/tuple_structs/happy_path.rs");
     t.pass("tests/ui/unit_structs/happy_path.rs");

@@ -91,6 +91,11 @@ pub enum JsonableError {
         got: usize,
         expected: usize,
     },
+    InvalidEnumStringVariant {
+        enum_type: &'static str,
+        got: String,
+        expected: Vec<&'static str>
+    }
 }
 
 /// Return type for [Jsonable::from_json] and [Jsonable::validate_json]
