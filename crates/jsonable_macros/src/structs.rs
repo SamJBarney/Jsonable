@@ -1,6 +1,6 @@
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
-use syn::{FieldsNamed, FieldsUnnamed, Type};
+use syn::{FieldsNamed, FieldsUnnamed};
 
 pub fn implement_named(identifier: &Ident, input: FieldsNamed) -> Result<TokenStream, String> {
     let mut from_json_unchecked: Vec<TokenStream> = Vec::new();
@@ -12,53 +12,16 @@ pub fn implement_named(identifier: &Ident, input: FieldsNamed) -> Result<TokenSt
         let ident_str = ident.to_string();
         let ty = field.ty;
 
-        match ty.clone() {
-            Type::Path(path) => {
-                let complex =
-                    path.path
-                        .segments
-                        .into_iter()
-                        .find(|segment| match segment.arguments {
-                            syn::PathArguments::None => false,
-                            _ => true,
-                        });
-                if let Some(_) = complex {
-                    from_json_unchecked.push(quote! {
-                        #ident: <#ty as jsonable::Jsonable>::from_json_unchecked(inner_json.remove(#ident_str).unwrap_or(serde_json::Value::Null)),
-                    });
+        from_json_unchecked.push(quote! {
+            #ident: <#ty as jsonable::Jsonable>::from_json_unchecked(inner_json.remove(#ident_str).unwrap_or(serde_json::Value::Null)),
+        });
 
-                    validate_json.push(quote!{
-                        match <#ty as jsonable::Jsonable>::validate_json(map.get(#ident_str).unwrap_or(&serde_json::Value::Null)) {
-                            Ok(()) => (),
-                            Err(err) => return Err(jsonable::JsonableError::InnerErrorForType { ty: std::any::type_name::<#ty>(), error: Box::from(err)})
-                        }
-                    });
-                } else {
-                    from_json_unchecked.push(quote! {
-                        #ident: #ty::from_json_unchecked(inner_json.remove(#ident_str).unwrap_or(serde_json::Value::Null)),
-                    });
-
-                    validate_json.push(quote!{
-                        match #ty::validate_json(map.get(#ident_str).unwrap_or(&serde_json::Value::Null)) {
-                            Ok(()) => (),
-                            Err(err) => return Err(jsonable::JsonableError::InnerErrorForType { ty: std::any::type_name::<#ty>(), error: Box::from(err)})
-                        }
-                    });
-                }
+        validate_json.push(quote!{
+            match <#ty as jsonable::Jsonable>::validate_json(map.get(#ident_str).unwrap_or(&serde_json::Value::Null)) {
+                Ok(()) => (),
+                Err(err) => return Err(jsonable::JsonableError::InnerErrorForType { ty: std::any::type_name::<#ty>(), error: Box::from(err)})
             }
-            _ => {
-                from_json_unchecked.push(quote! {
-                    #ident: <#ty as jsonable::Jsonable>::from_json_unchecked(inner_json.remove(#ident_str).unwrap_or(serde_json::Value::Null)),
-                });
-
-                validate_json.push(quote!{
-                    match <#ty as jsonable::Jsonable>::validate_json(map.get(#ident_str).unwrap_or(&serde_json::Value::Null)) {
-                        Ok(()) => (),
-                        Err(err) => return Err(jsonable::JsonableError::InnerErrorForType { ty: std::any::type_name::<#ty>(), error: Box::from(err)})
-                    }
-                });
-            }
-        };
+        });
 
         to_json.push(quote! {
             map.insert(#ident_str.into(), self.#ident.to_json());
@@ -115,53 +78,16 @@ pub fn implement_unnamed(identifier: &Ident, input: FieldsUnnamed) -> Result<Tok
 
         let index = syn::Index::from(idx);
 
-        match ty.clone() {
-            Type::Path(path) => {
-                let complex =
-                    path.path
-                        .segments
-                        .into_iter()
-                        .find(|segment| match segment.arguments {
-                            syn::PathArguments::None => false,
-                            _ => true,
-                        });
-                if let Some(_) = complex {
-                    from_json_unchecked.push(quote! {
-                        #index: <#ty as jsonable::Jsonable>::from_json_unchecked(inner_json.remove(#ident_str).unwrap_or(serde_json::Value::Null)),
-                    });
+        from_json_unchecked.push(quote! {
+            #index: <#ty as jsonable::Jsonable>::from_json_unchecked(inner_json.remove(#ident_str).unwrap_or(serde_json::Value::Null)),
+        });
 
-                    validate_json.push(quote!{
-                        match <#ty as jsonable::Jsonable>::validate_json(map.get(#ident_str).unwrap_or(&serde_json::Value::Null)) {
-                            Ok(()) => (),
-                            Err(err) => return Err(jsonable::JsonableError::InnerErrorForType { ty: std::any::type_name::<#ty>(), error: Box::from(err)})
-                        }
-                    });
-                } else {
-                    from_json_unchecked.push(quote! {
-                        #index: #ty::from_json_unchecked(inner_json.remove(#ident_str).unwrap_or(serde_json::Value::Null)),
-                    });
-
-                    validate_json.push(quote!{
-                        match #ty::validate_json(map.get(#ident_str).unwrap_or(&serde_json::Value::Null)) {
-                            Ok(()) => (),
-                            Err(err) => return Err(jsonable::JsonableError::InnerErrorForType { ty: std::any::type_name::<#ty>(), error: Box::from(err)})
-                        }
-                    });
-                }
+        validate_json.push(quote!{
+            match <#ty as jsonable::Jsonable>::validate_json(map.get(#ident_str).unwrap_or(&serde_json::Value::Null)) {
+                Ok(()) => (),
+                Err(err) => return Err(jsonable::JsonableError::InnerErrorForType { ty: std::any::type_name::<#ty>(), error: Box::from(err)})
             }
-            _ => {
-                from_json_unchecked.push(quote! {
-                    #index: <#ty as jsonable::Jsonable>::from_json_unchecked(inner_json.remove(#ident_str).unwrap_or(serde_json::Value::Null)),
-                });
-
-                validate_json.push(quote!{
-                    match <#ty as jsonable::Jsonable>::validate_json(map.get(#ident_str).unwrap_or(&serde_json::Value::Null)) {
-                        Ok(()) => (),
-                        Err(err) => return Err(jsonable::JsonableError::InnerErrorForType { ty: std::any::type_name::<#ty>(), error: Box::from(err)})
-                    }
-                });
-            }
-        };
+        });
 
         to_json.push(quote! {
             map.insert(#ident_str.into(), self.#index.to_json());
