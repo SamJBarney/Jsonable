@@ -112,6 +112,10 @@ pub enum JsonableError {
     IncorrectKeyForEnum {
         ty: &'static str,
         key: String
+    },
+    MissingKeyForEnumVariant {
+        variant: &'static str,
+        key: &'static str
     }
 }
 
@@ -475,9 +479,11 @@ number_impl!(u8, as_u64);
 number_impl!(u16, as_u64);
 number_impl!(u32, as_u64);
 number_impl!(u64, as_u64);
+number_impl!(usize, as_u64);
 number_impl!(i8, as_i64);
 number_impl!(i16, as_i64);
 number_impl!(i32, as_i64);
+number_impl!(isize, as_i64);
 number_impl!(i64, as_i64);
 number_impl!(f32, as_f64);
 number_impl!(f64, as_f64);

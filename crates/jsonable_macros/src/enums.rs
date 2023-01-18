@@ -106,6 +106,82 @@ fn implement_named(type_ident_str:&String, ident: &Ident, ident_str: &String, fi
     let mut to_json = Vec::new();
     let mut from_unchecked = Vec::new();
     let named = fields.named;
+    let field_count = named.len();
+
+    let mut validate_parts = Vec::new();
+    let mut to_json_parts = Vec::new();
+    let mut from_unchecked_parts = Vec::new();
+
+    let mut field_idents: Vec<Ident> = Vec::with_capacity(field_count);
+
+    for field in named {
+        let ty = field.ty;
+        let field_ident = field.ident.unwrap();
+        let field_ident_str = field_ident.to_string();
+        
+        from_unchecked_parts.push(quote!{
+            #field_ident: if let Some(value) = inner_map.remove(#field_ident_str) { <#ty as jsonable::Jsonable>::from_json_unchecked(value) } else { panic!("Missing field '{}' for variant `{}::{}`", #field_ident_str, #type_ident_str, #ident_str) }
+        });
+
+        to_json_parts.push(quote!{inner_map.insert(#field_ident_str.into(), #field_ident.to_json());});
+
+        validate_parts.push(quote!{
+            if let Some(value) = inner_map.get(#field_ident_str) {
+                match <#ty as jsonable::Jsonable>::validate_json(value) {
+                    Ok(_) => {},
+                    Err(err) => errors.push(jsonable::JsonableError::InnerErrorForType {ty: #ident_str, error: err.into()})
+                }
+            } else {
+                errors.push(jsonable::JsonableError::MissingKeyForEnumVariant {variant: #ident_str, key: #field_ident_str});
+            }
+        });
+
+        field_idents.push(field_ident);
+    }
+
+    from_unchecked.push(quote!{
+        #ident_str => {
+            if let Some(inner_map) = map.remove(#ident_str).unwrap().as_object_mut() {
+                Self::#ident{#(#from_unchecked_parts,)*}
+            } else {
+                panic!("Attempted converting non-object to enum variant `{}::{}`", #type_ident_str, #ident_str)
+            }
+        }
+    });
+
+    to_json.push(quote!{
+        Self::#ident {#(#field_idents,)*} => {
+            let mut inner_map = serde_json::Map::with_capacity(#field_count);
+
+            #(#to_json_parts)*
+
+            serde_json::Value::Object(serde_json::Map::from_iter([(#ident_str.into(), serde_json::Value::Object(inner_map))]))
+        }
+    });
+
+    validate.push(quote!{
+        if !has_key && map.contains_key(#ident_str) {
+            has_key = true;
+
+            if let Some(inner_map) = map.get(#ident_str).unwrap().as_object() {
+                if inner_map.len() == #field_count {
+                    let mut errors = Vec::new();
+
+                    #(#validate_parts)*
+
+                    if errors.len() > 0 {
+                        return Err(jsonable::JsonableError::InnerErrorsForType {ty: #type_ident_str, errors })
+                    } else {
+                        return Ok(())
+                    }
+                } else {
+                    return Err(jsonable::JsonableError::IncorrectFieldCountForEnum {enum_type: #type_ident_str, variant: #ident_str, count: #field_count})
+                }
+            } else {
+                return Err(jsonable::JsonableError::IncompatibleJsonType {got: "other", expected: "object"})
+            }
+        }
+    });
 
     Ok((validate, to_json, from_unchecked))
 }
