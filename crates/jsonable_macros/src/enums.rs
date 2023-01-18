@@ -142,7 +142,7 @@ fn implement_named(
             if let Some(value) = inner_map.get(#field_ident_str) {
                 match <#ty as jsonable::Jsonable>::validate_json(value) {
                     Ok(_) => {},
-                    Err(err) => errors.push(jsonable::JsonableError::InnerErrorForType {ty: #ident_str, error: err.into()})
+                    Err(err) => errors.push(jsonable::JsonableError::InnerErrorForType {ty: std::any::type_name::<#ty>(), error: err.into()})
                 }
             } else {
                 errors.push(jsonable::JsonableError::MissingKeyForEnumVariant {variant: #ident_str, key: #field_ident_str});
@@ -224,7 +224,7 @@ fn implement_unnamed(
             validate_parts.push(quote!{
                 match <#ty as jsonable::Jsonable>::validate_json(array.get(#idx).unwrap()) {
                     Ok(_) => {},
-                    Err(err) => errors.push(jsonable::JsonableError::InnerErrorForType {ty: #type_ident_str, error: err.into()})
+                    Err(err) => errors.push(jsonable::JsonableError::InnerErrorForType {ty: std::any::type_name::<#ty>(), error: err.into()})
                 };
             });
 
@@ -296,7 +296,9 @@ fn implement_unnamed(
                 let inner_json = map.get(#ident_str).unwrap();
                 match <#ty as jsonable::Jsonable>::validate_json(inner_json) {
                     Ok(_) => {},
-                    Err(err) => return Err(jsonable::JsonableError::InnerErrorForType{ ty: #ident_str,  error: err.into() })
+                    Err(err) => return Err(
+                        jsonable::JsonableError::InnerErrorForType{ ty: #ident_str, error: jsonable::JsonableError::InnerErrorForType{ ty: std::any::type_name::<#ty>(),  error: err.into() }.into()}
+                    )
                 };
             }
         });
