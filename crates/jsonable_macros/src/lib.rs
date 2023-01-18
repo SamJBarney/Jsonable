@@ -1,4 +1,4 @@
-use syn::{parse_macro_input, Data, DataStruct, DeriveInput, Fields, DataEnum};
+use syn::{parse_macro_input, Data, DataEnum, DataStruct, DeriveInput, Fields};
 
 mod enums;
 mod structs;
@@ -25,10 +25,7 @@ pub fn derive_jsonable(input: proc_macro::TokenStream) -> proc_macro::TokenStrea
             Ok(output) => output,
             Err(err) => panic!("{}", err),
         },
-        Data::Enum(DataEnum {
-            variants,
-            ..
-        }) => match enums::implement(&input.ident, variants) {
+        Data::Enum(DataEnum { variants, .. }) => match enums::implement(&input.ident, variants) {
             Ok(output) => output,
             Err(err) => panic!("{}", err),
         },

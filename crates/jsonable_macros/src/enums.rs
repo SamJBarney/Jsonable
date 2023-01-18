@@ -1,8 +1,11 @@
-use syn::{punctuated::Punctuated, Variant, token::Comma, Fields, FieldsUnnamed, FieldsNamed};
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
+use syn::{punctuated::Punctuated, token::Comma, Fields, FieldsNamed, FieldsUnnamed, Variant};
 
-pub fn implement(identifier: &Ident, variants: Punctuated<Variant, Comma>) -> Result<TokenStream, String> {
+pub fn implement(
+    identifier: &Ident,
+    variants: Punctuated<Variant, Comma>,
+) -> Result<TokenStream, String> {
     let identifier_string = identifier.to_string();
     let mut from_json_unchecked_string: Vec<TokenStream> = Vec::new();
     let mut from_json_unchecked_object: Vec<TokenStream> = Vec::new();
@@ -15,34 +18,38 @@ pub fn implement(identifier: &Ident, variants: Punctuated<Variant, Comma>) -> Re
         let ident = variant.ident;
         let ident_str = ident.to_string();
         let fields = variant.fields;
-        
+
         match fields {
             Fields::Named(named_fields) => {
-                let (mut validate, mut to, mut from_unchecked) = match implement_named(&identifier_string, &ident, &ident_str, named_fields) {
-                    Ok(result) => result,
-                    Err(reason) => return Err(reason)
-                };
+                let (mut validate, mut to, mut from_unchecked) =
+                    match implement_named(&identifier_string, &ident, &ident_str, named_fields) {
+                        Ok(result) => result,
+                        Err(reason) => return Err(reason),
+                    };
                 validate_json_object.append(&mut validate);
                 to_json.append(&mut to);
                 from_json_unchecked_object.append(&mut from_unchecked);
-            },
+            }
             Fields::Unnamed(unnamed_fields) => {
-                let (mut validate, mut to, mut from_unchecked) = match implement_unnamed(&identifier_string, &ident, &ident_str, unnamed_fields) {
-                    Ok(result) => result,
-                    Err(reason) => return Err(reason)
-                };
+                let (mut validate, mut to, mut from_unchecked) =
+                    match implement_unnamed(&identifier_string, &ident, &ident_str, unnamed_fields)
+                    {
+                        Ok(result) => result,
+                        Err(reason) => return Err(reason),
+                    };
                 validate_json_object.append(&mut validate);
                 to_json.append(&mut to);
                 from_json_unchecked_object.append(&mut from_unchecked);
-            },
+            }
             Fields::Unit => {
                 validate_json_string.push(quote! {#ident_str => Ok(())});
                 from_json_unchecked_string.push(quote! {#ident_str => Self::#ident});
                 expected_string_types.push(ident_str.clone());
-                to_json.push(quote! { Self::#ident => serde_json::Value::String(#ident_str.into())});
+                to_json
+                    .push(quote! { Self::#ident => serde_json::Value::String(#ident_str.into())});
             }
         }
-    };
+    }
     Ok(quote! {
         impl jsonable::Jsonable for #identifier {
             fn from_json_unchecked(mut json: serde_json::Value) -> Self {
@@ -101,7 +108,12 @@ pub fn implement(identifier: &Ident, variants: Punctuated<Variant, Comma>) -> Re
     })
 }
 
-fn implement_named(type_ident_str:&String, ident: &Ident, ident_str: &String, fields: FieldsNamed) -> Result<(Vec<TokenStream>, Vec<TokenStream>, Vec<TokenStream>), String> {
+fn implement_named(
+    type_ident_str: &String,
+    ident: &Ident,
+    ident_str: &String,
+    fields: FieldsNamed,
+) -> Result<(Vec<TokenStream>, Vec<TokenStream>, Vec<TokenStream>), String> {
     let mut validate = Vec::new();
     let mut to_json = Vec::new();
     let mut from_unchecked = Vec::new();
@@ -118,12 +130,13 @@ fn implement_named(type_ident_str:&String, ident: &Ident, ident_str: &String, fi
         let ty = field.ty;
         let field_ident = field.ident.unwrap();
         let field_ident_str = field_ident.to_string();
-        
+
         from_unchecked_parts.push(quote!{
             #field_ident: if let Some(value) = inner_map.remove(#field_ident_str) { <#ty as jsonable::Jsonable>::from_json_unchecked(value) } else { panic!("Missing field '{}' for variant `{}::{}`", #field_ident_str, #type_ident_str, #ident_str) }
         });
 
-        to_json_parts.push(quote!{inner_map.insert(#field_ident_str.into(), #field_ident.to_json());});
+        to_json_parts
+            .push(quote! {inner_map.insert(#field_ident_str.into(), #field_ident.to_json());});
 
         validate_parts.push(quote!{
             if let Some(value) = inner_map.get(#field_ident_str) {
@@ -186,21 +199,25 @@ fn implement_named(type_ident_str:&String, ident: &Ident, ident_str: &String, fi
     Ok((validate, to_json, from_unchecked))
 }
 
-
-fn implement_unnamed(type_ident_str: &String, ident: &Ident, ident_str: &String, fields: FieldsUnnamed) -> Result<(Vec<TokenStream>, Vec<TokenStream>, Vec<TokenStream>), String> {
+fn implement_unnamed(
+    type_ident_str: &String,
+    ident: &Ident,
+    ident_str: &String,
+    fields: FieldsUnnamed,
+) -> Result<(Vec<TokenStream>, Vec<TokenStream>, Vec<TokenStream>), String> {
     let mut validate: Vec<TokenStream> = Vec::new();
     let mut to_json: Vec<TokenStream> = Vec::new();
     let mut from_unchecked: Vec<TokenStream> = Vec::new();
     let unnamed = fields.unnamed;
     let count = unnamed.len();
-    
+
     if count > 1 {
         let mut validate_parts: Vec<TokenStream> = Vec::with_capacity(count);
         let mut to_json_parts: Vec<TokenStream> = Vec::with_capacity(count);
         let mut from_unchecked_parts: Vec<TokenStream> = Vec::with_capacity(count);
         for (idx, field) in unnamed.iter().enumerate() {
             let ty = field.ty.clone();
-            from_unchecked_parts.push(quote!{
+            from_unchecked_parts.push(quote! {
                 <#ty as jsonable::Jsonable>::from_json_unchecked(array.pop().unwrap())
             });
 
@@ -213,7 +230,7 @@ fn implement_unnamed(type_ident_str: &String, ident: &Ident, ident_str: &String,
 
             let field_name = Ident::new(format!("field{}", idx).as_str(), ident.span());
 
-            to_json_parts.push(quote!{
+            to_json_parts.push(quote! {
                 array.push(#field_name.to_json())
             });
         }
@@ -253,9 +270,10 @@ fn implement_unnamed(type_ident_str: &String, ident: &Ident, ident_str: &String,
             }
         });
 
-
-        let fields: Vec<Ident> = (0..count).map(|idx| Ident::new(format!("field{}", idx).as_str(), ident.span())).collect();
-        to_json.push(quote!{
+        let fields: Vec<Ident> = (0..count)
+            .map(|idx| Ident::new(format!("field{}", idx).as_str(), ident.span()))
+            .collect();
+        to_json.push(quote! {
             Self::#ident(#(#fields,)*) => {
                 let mut array = Vec::with_capacity(#count);
 

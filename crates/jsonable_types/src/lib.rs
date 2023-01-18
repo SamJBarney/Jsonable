@@ -98,25 +98,25 @@ pub enum JsonableError {
     InvalidEnumStringVariant {
         enum_type: &'static str,
         got: String,
-        expected: Vec<&'static str>
+        expected: Vec<&'static str>,
     },
     IncorrectObjectKeyCountForEnum {
         ty: &'static str,
-        count: usize
+        count: usize,
     },
     IncorrectFieldCountForEnum {
         enum_type: &'static str,
         variant: &'static str,
-        count: usize
+        count: usize,
     },
     IncorrectKeyForEnum {
         ty: &'static str,
-        key: String
+        key: String,
     },
     MissingKeyForEnumVariant {
         variant: &'static str,
-        key: &'static str
-    }
+        key: &'static str,
+    },
 }
 
 /// Return type for [Jsonable::from_json] and [Jsonable::validate_json]
